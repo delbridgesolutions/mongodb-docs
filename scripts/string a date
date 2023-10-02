@@ -1,0 +1,21 @@
+var coll = db.getCollection('<COLLECTION>');
+var bulk = coll.initializeOrderedBulkOp();
+var counter = 0;
+coll.find({ <FIELD_NAME_STRING>: { $type: "string" }}).forEach(function(data) {
+    var updoc = {
+        "$set": {}
+    };
+    updoc["$set"]["<FIELD_NAME_STRING>"] = new Date(<FIELD_NAME_STRING>);
+    // queue the update
+    bulk.find({
+        "_id": data._id
+    }).update(updoc);
+    counter++;
+    // Drain and re-initialize every 1000 update statements
+    if (counter % 1000 == 0) {
+        bulk.execute();
+        bulk = coll.initializeOrderedBulkOp();
+    }
+    })
+    // Add the rest in the queue
+if (counter % 1000 != 0) bulk.execute();
